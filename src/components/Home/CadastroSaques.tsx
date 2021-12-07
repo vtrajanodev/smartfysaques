@@ -1,7 +1,7 @@
 import { Formik, Form, Field, FormikHelpers } from 'formik'
 import { useEffect, useState } from 'react'
 import styles from './cadastroSaques.module.scss'
-import { ref, push, child, update } from "firebase/database";
+import { ref, push, child, update, get, onChildAdded, onChildChanged, onChildRemoved, onValue } from "firebase/database";
 import { database } from '../../services/firebase';
 
 interface Saques {
@@ -18,9 +18,6 @@ export const CadastroSaques = () => {
 
   const [arrayDeSaques, setArrayDeSaques] = useState<Saques[]>([])
 
-  useEffect(() => {
-  }, [])
-
   const computarSaques = async ({ nome, login, valor, modalidade, pix, banco, cpf }: Saques) => {
 
     const novoSaque = {
@@ -33,19 +30,16 @@ export const CadastroSaques = () => {
       cpf: cpf
     }
 
-    // const modalidadeDoSaque = ref(database, 'saques/' + modalidade)
 
     const newPostKey = push(child(ref(database), 'saques')).key;
     const updates: any = {};
 
     if (modalidade === 'rendimentos'.toLowerCase() || modalidade === 'rede'.toLowerCase()) {
-      updates['/saques/' + modalidade + '/' + newPostKey] = novoSaque;
+      updates['/saques/' + newPostKey] = novoSaque;
       return update(ref(database), updates);
     }
-
   }
 
-  console.log(arrayDeSaques)
   return (
     <>
       <div className={`container`}>
@@ -66,7 +60,6 @@ export const CadastroSaques = () => {
             { setSubmitting }: FormikHelpers<Saques>
           ) => {
             await computarSaques(values)
-            setArrayDeSaques([...arrayDeSaques, values])
           }}
         >
           {props => (
