@@ -1,7 +1,7 @@
 import { Formik, Form, Field, FormikHelpers } from 'formik'
 import { useEffect, useState } from 'react'
 import styles from './cadastroSaques.module.scss'
-import { getDatabase, ref, set, push, child, update } from "firebase/database";
+import { ref, push, child, update } from "firebase/database";
 import { database } from '../../services/firebase';
 
 interface Saques {
@@ -19,7 +19,6 @@ export const CadastroSaques = () => {
   const [arrayDeSaques, setArrayDeSaques] = useState<Saques[]>([])
 
   useEffect(() => {
-    localStorage.getItem('listaDeSaques')
   }, [])
 
   const computarSaques = async ({ nome, login, valor, modalidade, pix, banco, cpf }: Saques) => {
@@ -34,19 +33,20 @@ export const CadastroSaques = () => {
       cpf: cpf
     }
 
+    // const modalidadeDoSaque = ref(database, 'saques/' + modalidade)
+
     const newPostKey = push(child(ref(database), 'saques')).key;
     const updates: any = {};
 
+    if (modalidade === 'rendimentos'.toLowerCase() || modalidade === 'rede'.toLowerCase()) {
+      updates['/saques/' + modalidade + '/' + newPostKey] = novoSaque;
+      return update(ref(database), updates);
+    }
 
-    updates['/saques/' + modalidade + '/' + newPostKey] = novoSaque;
-
-
-    return update(ref(database), updates);
   }
 
   console.log(arrayDeSaques)
   return (
-
     <>
       <div className={`container`}>
 
@@ -56,7 +56,7 @@ export const CadastroSaques = () => {
             nome: '',
             login: '',
             valor: 0,
-            modalidade: '',
+            modalidade: 'rendimentos',
             pix: '',
             banco: '',
             cpf: ''
@@ -88,8 +88,11 @@ export const CadastroSaques = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="modalidade">Modalidade</label>
-                  <Field id="modalidade" name="modalidade" />
+                  <label htmlFor="modalidade">Modalidade:</label>
+                  <Field as="select" name="modalidade" id="modalidade">
+                    <option value="rendimentos">Rendimentos</option>
+                    <option value="rede">Rede</option>
+                  </Field>
                 </div>
 
                 <div>
